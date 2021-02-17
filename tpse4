@@ -1,0 +1,61 @@
+#include<stdio.h>
+#include<semaphore.h>
+#include<pthread.h>
+
+
+
+pthread_t cons,prod;
+int ip=0;
+int ic=0;
+int tampon[10];
+
+
+sem_t nvide,mutex,nplein;
+
+
+
+void *pro(void *name){
+	int i=0;
+	int objet=50;
+	while(i<10){
+		objet++;
+		sem_wait(&nvide);
+		sem_wait(&mutex);
+		tampon[ip]=objet;
+		ip=(ip+1)%10;
+		printf("producteur : tampon[%d] = %d \n",ip,objet);
+		sem_post(&mutex);
+		sem_post(&nplein);
+		i++;
+		}
+	};
+
+
+void *con(void *name){
+	int i=0;
+	int objet;
+	while(i<10){
+		
+		sem_wait(&nplein);
+		sem_wait(&mutex);
+		objet=tampon[ic];
+		ic=(ic+1)%10;
+		printf("consomateur : %d=tampon[%d]   \n",objet,ic);
+		sem_post(&mutex);
+		sem_post(&nvide);
+		i++;
+		}
+	};
+
+int main(){
+	sem_init(&nvide,0,10);
+	sem_init(&mutex,0,1);
+	sem_init(&nplein,0,0);
+	pthread_create(&prod,NULL,pro,NULL);
+	pthread_create(&cons,NULL,con,NULL);
+
+
+	pthread_join(prod,NULL);
+    pthread_join(cons,NULL);
+	
+}
